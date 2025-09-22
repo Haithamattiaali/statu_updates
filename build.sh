@@ -26,7 +26,8 @@ cp project_update_*.json dist/public/ 2>/dev/null || echo "No JSON files to copy
 
 # Create a simple Netlify function without dependencies
 echo "Creating serverless function..."
-cat > dist/functions/api.js << 'EOF'
+mkdir -p netlify/functions
+cat > netlify/functions/api.js << 'EOF'
 // Simple Netlify Function without external dependencies
 exports.handler = async (event, context) => {
   const path = event.path.replace('/.netlify/functions/api', '');
@@ -151,4 +152,4 @@ EOF
 echo "Build complete!"
 ls -la dist/
 ls -la dist/public/
-ls -la dist/functions/
+ls -la netlify/functions/
