@@ -10,6 +10,7 @@ npm install
 echo "Installing backend dependencies..."
 cd backend
 npm install
+npm install --save-dev @types/node
 cd ..
 
 # Build backend
