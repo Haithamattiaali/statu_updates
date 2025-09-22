@@ -1,0 +1,62 @@
+{
+  "name": "proceed-dashboard-monorepo",
+  "version": "1.0.0",
+  "description": "PROCEED Portfolio Management Dashboard - Full Stack Application",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "install:all": "npm ci && cd backend && npm ci",
+    "dev": "npm run dev:backend & npm run dev:frontend",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "npx serve -l 8080",
+    "dev:netlify": "netlify dev",
+    "build:all": "npm run build:backend && npm run build:frontend && npm run build:functions",
+    "build:backend": "cd backend && npm run build:production",
+    "build:frontend": "npm run prepare:frontend",
+    "build:functions": "npm run prepare:functions",
+    "prepare:frontend": "mkdir -p dist/public && npm run copy:frontend",
+    "copy:frontend": "cp fareye-b2b-project-update-enhanced.html dist/public/index.html && cp dashboard-bind.js dist/public/ && cp -r project_update_*.json dist/public/ 2>/dev/null || true",
+    "prepare:functions": "mkdir -p dist/functions && npm run build:serverless",
+    "build:serverless": "cd backend && npm run build:serverless",
+    "test": "cd backend && npm test",
+    "lint": "cd backend && npm run lint",
+    "typecheck": "cd backend && npm run typecheck",
+    "prisma:generate": "cd backend && npx prisma generate --schema=./prisma/schema.production.prisma",
+    "prisma:migrate": "cd backend && npx prisma migrate deploy --schema=./prisma/schema.production.prisma",
+    "prisma:migrate:dev": "cd backend && npx prisma migrate dev",
+    "prisma:studio": "cd backend && npx prisma studio",
+    "clean": "rm -rf dist node_modules backend/dist backend/node_modules",
+    "postinstall": "npm run prisma:generate || echo 'Skipping Prisma generation'",
+    "deploy": "netlify deploy --prod",
+    "deploy:preview": "netlify deploy",
+    "logs": "netlify functions:log"
+  },
+  "devDependencies": {
+    "@netlify/functions": "^2.4.1",
+    "netlify-cli": "^17.10.1",
+    "serve": "^14.2.1",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "serverless-http": "^3.2.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/proceed-dashboard.git"
+  },
+  "keywords": [
+    "portfolio",
+    "dashboard",
+    "excel",
+    "typescript",
+    "netlify",
+    "serverless",
+    "prisma"
+  ],
+  "author": "PROCEED Team",
+  "license": "MIT"
+}

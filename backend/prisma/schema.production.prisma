@@ -1,0 +1,146 @@
+// Production schema for PostgreSQL deployment
+// Use this schema for Netlify deployment with a PostgreSQL database
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x", "debian-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Snapshot {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  actor       String?   @db.VarChar(255)
+  notes       String?   @db.Text
+  rawExcel    Bytes?    // Store original Excel file
+
+  // Denormalized JSON for fast retrieval
+  domainData  Json      // JSON of PortfolioSnapshot
+  viewModel   Json      // JSON of DashboardVM
+
+  // Relations
+  headers     Headers?
+  status      Status[]
+  highlights  Highlight[]
+  lowlights   Lowlight[]
+  milestones  Milestone[]
+  metrics     Metrics[]
+
+  @@index([createdAt])
+}
+
+model Headers {
+  id                    String    @id @default(cuid())
+  snapshotId           String    @unique
+  snapshot             Snapshot  @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  portfolio            String    @db.VarChar(255)
+  currentPeriodStart   String    @db.VarChar(50)
+  currentPeriodEnd     String    @db.VarChar(50)
+  comparisonPeriodStart String?   @db.VarChar(50)
+  comparisonPeriodEnd  String?   @db.VarChar(50)
+  reportDate           String    @db.VarChar(50)
+
+  // Section titles (JSON)
+  sectionTitles        Json?
+
+  // Table headers (JSON)
+  tableHeaders         Json?
+
+  createdAt            DateTime  @default(now())
+}
+
+model Status {
+  id             String    @id @default(cuid())
+  snapshotId     String
+  snapshot       Snapshot  @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  project        String    @db.VarChar(255)
+  statusColor    String    @db.VarChar(10) // green|amber|red
+  trend          String    @db.VarChar(10) // up|down|flat
+  manager        String    @db.VarChar(255)
+  nextMilestone  String    @db.Text
+  order          Int       @default(0)
+
+  createdAt      DateTime  @default(now())
+
+  @@index([snapshotId])
+  @@index([project])
+}
+
+model Highlight {
+  id          String    @id @default(cuid())
+  snapshotId  String
+  snapshot    Snapshot  @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  project     String?   @db.VarChar(255)
+  description String    @db.Text
+  order       Int       @default(0)
+
+  createdAt   DateTime  @default(now())
+
+  @@index([snapshotId])
+}
+
+model Lowlight {
+  id          String    @id @default(cuid())
+  snapshotId  String
+  snapshot    Snapshot  @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  project     String?   @db.VarChar(255)
+  description String    @db.Text
+  order       Int       @default(0)
+
+  createdAt   DateTime  @default(now())
+
+  @@index([snapshotId])
+}
+
+model Milestone {
+  id                String    @id @default(cuid())
+  snapshotId        String
+  snapshot          Snapshot  @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  project           String    @db.VarChar(255)
+  milestone         String    @db.Text
+  owner             String    @db.VarChar(255)
+  dueDate           String    @db.VarChar(50)
+  statusBadge       String    @db.VarChar(50)
+  workstreamUpdate  String?   @db.Text
+  order             Int       @default(0)
+
+  createdAt         DateTime  @default(now())
+
+  @@index([snapshotId])
+  @@index([project])
+}
+
+model Metrics {
+  id                    String    @id @default(cuid())
+  snapshotId            String
+  snapshot              Snapshot  @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  project               String    @db.VarChar(255)
+  spi                   Float?    @db.DoublePrecision
+  cpi                   Float?    @db.DoublePrecision
+  sev1Defects          Int?
+  sev2Defects          Int?
+  issues               Int?
+  riskScore            Float?    @db.DoublePrecision
+  milestoneCompletion  Float?    @db.DoublePrecision
+
+  createdAt            DateTime  @default(now())
+
+  @@index([snapshotId])
+  @@index([project])
+}
+
+model CurrentSnapshot {
+  id          String    @id @default("current")
+  snapshotId  String    @unique
+  updatedAt   DateTime  @updatedAt
+}

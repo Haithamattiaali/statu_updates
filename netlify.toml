@@ -1,0 +1,130 @@
+# Netlify Configuration File for PROCEED Dashboard
+# This configuration deploys both the frontend and backend on Netlify
+
+[build]
+  # Base directory for all operations
+  base = "."
+
+  # Build command for the entire project
+  command = "npm run build:all"
+
+  # Directory containing the frontend files
+  publish = "dist/public"
+
+  # Functions directory
+  functions = "dist/functions"
+
+[build.environment]
+  # Node.js version for build
+  NODE_VERSION = "20.10.0"
+
+  # NPM version for build
+  NPM_VERSION = "10.2.5"
+
+  # Enable modern JavaScript features
+  NODE_OPTIONS = "--max_old_space_size=4096"
+
+# Production environment variables (set in Netlify UI)
+[context.production.environment]
+  NODE_ENV = "production"
+
+# Function configuration
+[functions]
+  # Directory containing serverless functions
+  directory = "dist/functions"
+
+  # Node.js version for functions runtime
+  node_bundler = "esbuild"
+
+  # Include files in function bundles
+  included_files = ["backend/prisma/**"]
+
+# API endpoint redirects
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+
+# Health check endpoint
+[[redirects]]
+  from = "/health"
+  to = "/.netlify/functions/api/health"
+  status = 200
+
+# OpenAPI documentation
+[[redirects]]
+  from = "/api-docs"
+  to = "/.netlify/functions/api/openapi.json"
+  status = 200
+
+# SPA fallback for client-side routing (if needed in future)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  conditions = {Role = ["user"]}
+
+# Security headers
+[[headers]]
+  for = "/*"
+
+  [headers.values]
+    # Security headers
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+    # CSP header for security
+    Content-Security-Policy = '''
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://fonts.googleapis.com;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com;
+      img-src 'self' data: https:;
+      connect-src 'self' https://*.netlify.app https://*.netlify.live;
+      frame-ancestors 'none';
+      base-uri 'self';
+      form-action 'self';
+    '''
+
+    # Feature Policy
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+
+# Cache control for static assets
+[[headers]]
+  for = "/static/*"
+
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.js"
+
+  [headers.values]
+    Cache-Control = "public, max-age=86400, must-revalidate"
+
+[[headers]]
+  for = "*.css"
+
+  [headers.values]
+    Cache-Control = "public, max-age=86400, must-revalidate"
+
+[[headers]]
+  for = "*.html"
+
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+# Plugins for enhanced functionality
+[[plugins]]
+  package = "@netlify/plugin-functions-install-core"
+
+# Development configuration
+[dev]
+  command = "npm run dev:netlify"
+  port = 8888
+  targetPort = 3001
+  framework = "#custom"
+  autoLaunch = true

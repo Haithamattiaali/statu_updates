@@ -23,7 +23,7 @@ export class ExcelParser {
 
   async read(buffer: Buffer): Promise<ExcelJS.Workbook> {
     this.workbook = new ExcelJS.Workbook();
-    await this.workbook.xlsx.load(buffer);
+    await this.workbook.xlsx.load(buffer as any);
     return this.workbook;
   }
 
@@ -52,8 +52,8 @@ export class ExcelParser {
       const data: PortfolioSnapshot = {
         headers,
         status,
-        highlights,
-        lowlights,
+        highlights: highlights as any,
+        lowlights: lowlights as any,
         milestones,
         metrics: metrics.length > 0 ? metrics : undefined,
         lookups: Object.keys(lookups).length > 0 ? lookups : undefined,
